@@ -60,7 +60,8 @@ if fqdn
     end
 
   when 'rhel', 'amazon'
-    service 'network' do
+    network_service_name = node['os_version'].include?('amzn2023') ? 'NetworkManager' : 'network'
+    service network_service_name do
       action :nothing
     end
     hostfile = '/etc/sysconfig/network'
@@ -71,7 +72,7 @@ if fqdn
       }
       not_if { ::IO.read(hostfile) =~ /^HOSTNAME=#{fqdn}$/ }
       notifies :reload, 'ohai[reload_hostname]', :immediately
-      notifies :restart, 'service[network]', :delayed
+      notifies :restart, "service[#{network_service_name}]", :delayed
     end
     # this is to persist the correct hostname after machine reboot
     sysctl = '/etc/sysctl.conf'
@@ -85,7 +86,7 @@ if fqdn
       }
       not_if { ::IO.read(sysctl).scan(regex).last == newline }
       notifies :reload, 'ohai[reload_hostname]', :immediately
-      notifies :restart, 'service[network]', :delayed
+      notifies :restart, "service[#{network_service_name}]", :delayed
     end
     execute "hostname #{hostname}" do
       only_if { node['hostname'] != hostname }
