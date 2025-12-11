@@ -60,7 +60,7 @@ if fqdn
     end
 
   when 'rhel', 'amazon'
-    network_service_name = node['os_version'].include?('amzn2023') ? 'NetworkManager' : 'network'
+    network_service_name = node['os_version'].include?('amzn2023') ? 'systemd-networkd' : 'network'
     service network_service_name do
       action :nothing
     end
